@@ -31,15 +31,14 @@
   },
   "homepage": "https://github.com/mikeal/dag-json#readme",
   "devDependencies": {
-    "hundreds": "0.0.8",
-    "mocha": "^8.1.1",
+    "chai": "^4.2.0",
+    "hundreds": "^0.0.9",
+    "mocha": "^8.2.1",
     "polendina": "^1.1.0",
-    "standard": "^14.3.4"
+    "standard": "^16.0.3"
   },
   "dependencies": {
-    "@ipld/is-circular": "^2.0.0",
-    "fast-json-stable-stringify": "^2.1.0",
-    "lodash.transform": "^4.6.0",
-    "multiformats": "^4.0.0"
+    "ipld-garbage": "^2.0.0",
+    "multiformats": "^4.4.3"
   }
 }
