@@ -38,6 +38,7 @@
     "standard": "^16.0.3"
   },
   "dependencies": {
+    "cborg": "github:rvagg/cborg#rvagg/json",
     "ipld-garbage": "^2.0.0",
     "multiformats": "^4.4.3"
   }
