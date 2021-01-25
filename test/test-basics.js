@@ -23,17 +23,30 @@ describe('basic dag-json', () => {
     same(bytes.isBinary(decode(byts).byts), true)
   })
 
-  test('use reserved space', () => {
-    // allowed
-    same(decode(encode({ '/': { bytes: true } })), { '/': { bytes: true } })
-    same(decode(encode({ '/': { type: 'stringName' } })), { '/': { type: 'stringName' } })
-    same(decode(encode({ '/': bytes.fromString('asdf') })), { '/': bytes.fromString('asdf') })
+  describe('reserved space', () => {
+    test('allow alternative types', () => {
+      //  wrong types
+      for (const obj of [true, false, null, 1, -1, 1.1, { blip: 'bop' }, ['foo']]) {
+        same(decode(encode({ '/': obj })), { '/': obj })
+        same(decode(encode({ '/': { bytes: obj } })), { '/': { bytes: obj } })
+      }
+    })
 
-    // TODO: test encode() doesn't allow this
-    assert.throws(() => decode(encode({ '/': link.toString(), bop: 'bip' })))
-    assert.throws(() => decode(encode({ '/': { bytes: 'mS7ldeA', bop: 'bip' } })))
-    assert.throws(() => decode(encode({ '/': { bytes: 'mS7ldeA' }, bop: 'bip' })))
-    assert.throws(() => decode(encode({ '/': { bytes: 'mS7ldeA', bop: 'bip' }, bop: 'bip' })))
+    test('allow specials within reserved space', () => {
+      // can we put slash-objects within slashes?
+      same(decode(encode({ '/': bytes.fromString('asdf') })), { '/': bytes.fromString('asdf') })
+      same(new TextDecoder().decode(encode({ '/': bytes.fromString('asdf') })), '{"/":{"/":{"bytes":"mYXNkZg"}}}')
+      same(decode(encode({ '/': link })), { '/': link })
+      same(new TextDecoder().decode(encode({ '/': link })), '{"/":{"/":"bafyreifepiu23okq5zuyvyhsoiazv2icw2van3s7ko6d3ixl5jx2yj2yhu"}}')
+    })
+
+    test('disallow extraneous tokens', () => {
+      // TODO: test encode() doesn't allow this
+      assert.throws(() => decode(encode({ '/': link.toString(), x: 'bip' })))
+      assert.throws(() => decode(encode({ '/': { bytes: 'mS7ldeA', x: 'bip' } })))
+      assert.throws(() => decode(encode({ '/': { bytes: 'mS7ldeA' }, x: 'bip' })))
+      assert.throws(() => decode(encode({ '/': { bytes: 'mS7ldeA', x: 'bip' }, bop: 'bip' })))
+    })
   })
 
   test('native types', done => {
@@ -48,6 +61,13 @@ describe('basic dag-json', () => {
     same(flip([]), [])
     same(flip(['asdf']), ['asdf'])
     done()
+  })
+
+  test('stable map key sorting', () => {
+    const s1 = bytes.toString(encode({ a: 1, b: 2, bb: 2.2, c: 3, c_: 3.3 }))
+    const s2 = bytes.toString(encode({ c_: 3.3, bb: 2.2, b: 2, c: 3, a: 1 }))
+    same('{"a":1,"b":2,"bb":2.2,"c":3,"c_":3.3}', s1)
+    same('{"a":1,"b":2,"bb":2.2,"c":3,"c_":3.3}', s2)
   })
 
   test('error on circular references', () => {
